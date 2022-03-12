@@ -7,14 +7,14 @@ enum CellStatus {E, X, O}
 enum Player {X, O}
 
 @Entity
+@Table(name = "gameTable")
 public class GameMoveEntity {
-    public String table;
-    public Player player; // X o O
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(nullable = false)
     private Long id;
+    public String table;
+    public Player player;
 
     public GameMoveEntity() {
         this(new GameLogic());
@@ -22,7 +22,7 @@ public class GameMoveEntity {
 
     public GameMoveEntity(GameLogic game) {
         this.player = game.player;
-        this.table = game.tableSerialize(table);
+        this.table = GameLogic.serializeTable(game.table);
     }
 
     public Long getId() {

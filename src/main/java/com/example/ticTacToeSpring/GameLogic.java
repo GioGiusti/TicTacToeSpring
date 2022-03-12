@@ -5,9 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 class InvalidTicTacToeInput extends RuntimeException {
-    InvalidTicTacToeInput(String msg) {
-        super(msg);
-    }
+    InvalidTicTacToeInput(String msg) { super(msg); }
 }
 
 public class GameLogic {
@@ -33,30 +31,6 @@ public class GameLogic {
 
     static private Optional<Player> getWinner(CellStatus cell) {
         return Optional.of(cell == CellStatus.X ? Player.X : Player.O);
-    }
-
-    public static String serializeTable(CellStatus[][] board) {
-        return Arrays.stream(board)
-                .map(r -> Arrays.stream(r).map(CellStatus::toString).collect(Collectors.joining(",")))
-                .collect(Collectors.joining(";"));
-    }
-
-    public static CellStatus[][] deserializeTable(String serializedBoard) {
-        return Arrays.stream(serializedBoard.split(";"))
-                .map(r -> Arrays.stream(r.split(",")).map(CellStatus::valueOf).toArray(CellStatus[]::new))
-                .toArray(CellStatus[][]::new);
-    }
-
-    public void makeMove(int i, int j) throws InvalidTicTacToeInput {
-        if (i < 0 || i > 2 || j < 0 || j > 2) { // <- Check for out of bounds
-            throw new InvalidTicTacToeInput("Out of Bounds");
-        }
-        if (table[i][j] != CellStatus.E) { // <- check for already filled
-            throw new InvalidTicTacToeInput("Position already used");
-        }
-
-        table[i][j] = player == Player.X ? CellStatus.X : CellStatus.O;
-        player = player == Player.X ? Player.O : Player.X;
     }
 
     public Optional<Player> getTheWinner() {
@@ -88,11 +62,32 @@ public class GameLogic {
         return true;
     }
 
-    public boolean isMoveValid(int i, int j) {
-        return table[i][j] == CellStatus.E;
+    public void makeMove(int i, int j) throws InvalidTicTacToeInput {
+        if (i < 0 || i > 2 || j < 0 || j > 2) { // <- Check for out of bounds
+            throw new InvalidTicTacToeInput("Out of Bounds");
+        }
+        if (table[i][j] != CellStatus.E) { // <- check for already filled
+            throw new InvalidTicTacToeInput("Position already used");
+        }
+
+        table[i][j] = player == Player.X ? CellStatus.X : CellStatus.O;
+        player = player == Player.X ? Player.O : Player.X;
     }
 
-    public boolean isGameOver() {
-        return getTheWinner().isPresent() || isDraw();
+    public boolean isMoveValid(int i, int j) { return table[i][j] == CellStatus.E; }
+
+    public boolean isGameOver() { return getTheWinner().isPresent() || isDraw(); }
+
+    public static String serializeTable(CellStatus[][] board) {
+        return Arrays.stream(board)
+                .map(r -> Arrays.stream(r).map(CellStatus::toString).collect(Collectors.joining(",")))
+                .collect(Collectors.joining(";"));
     }
+
+    public static CellStatus[][] deserializeTable(String serializedTable) {
+        return Arrays.stream(serializedTable.split(";"))
+                .map(r -> Arrays.stream(r.split(",")).map(CellStatus::valueOf).toArray(CellStatus[]::new))
+                .toArray(CellStatus[][]::new);
+    }
+
 }
