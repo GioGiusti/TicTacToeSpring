@@ -1,38 +1,38 @@
 package com.example.ticTacToeSpring;
 
-import org.springframework.web.bind.annotation.*;
-
-class GameArray {
-    public CellStatus[][] gameTable = new CellStatus[3][3];
-    public Player currentPlayer; // X o O
-
-    public GameArray() {
-        for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 3; j++)
-                gameTable[i][j] = CellStatus.E;
-
-        currentPlayer = Player.X;
-    }
-}
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class GameController {
 
-    private final GameRepository gameRepository;
+    GameRepository gameRepository;
 
-    public GameController(GameRepository gameRepository) {
-        this.gameRepository = gameRepository;
+    public GameController(GameRepository repository) {
+        this.gameRepository = repository;
     }
 
-    @GetMapping("/") //nuovo movimento e poi salvataggio nella repository
-    public GameMove getGames() {
-        return gameRepository.save(new GameMove());
+    @GetMapping("/startGame") //nuovo movimento e poi salvataggio nella repository
+    public GameLogic getGames() {
+        return new GameLogic(gameRepository.save(new GameMoveEntity()));
     }
 
-    @PostMapping("/game/create")
-    public GameMove createMove(@RequestBody int i, @RequestParam int j) {
-        var move = gameRepository.findTopByOrderByIdAsc().get();
-        return gameRepository.save(move);
+    @PostMapping("/move/{i}/{j}")
+    public GameLogic move(@PathVariable int i, @PathVariable int j) {
+        var move = gameRepository.findTopByOrderByIdDesc();
+
+        if (move.isEmpty()) throw new IllegalArgumentException("Partita inesistente");
+
+        var newGame = new GameLogic(move.get());
+
+        if (!newGame.isMoveValid(i, j)) throw new IllegalArgumentException("Mossa non valida");
+        if (newGame.isGameOver()) throw new IllegalArgumentException("Partita terminata");
+
+        newGame.makeMove(i, j);
+        gameRepository.save(new GameMoveEntity(newGame));
+        return newGame;
     }
 
 }

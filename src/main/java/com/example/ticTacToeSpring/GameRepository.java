@@ -4,8 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface GameRepository extends JpaRepository<GameMove, Long> {
-    Optional<GameMove> findTopByOrderByIdAsc();
-
-
+public interface GameRepository extends JpaRepository<GameMoveEntity, Long> {
+    Optional<GameMoveEntity> findTopByOrderByIdDesc();
 }

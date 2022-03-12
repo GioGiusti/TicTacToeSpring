@@ -1,6 +1,5 @@
 package com.example.ticTacToeSpring;
 
-
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -12,16 +11,20 @@ class InvalidTicTacToeInput extends RuntimeException {
 }
 
 public class GameLogic {
+    public CellStatus[][] table;
+    public Player player;
 
-    public CellStatus[][] gameTable = new CellStatus[3][3];
-    public Player currentPlayer; // X o O
-
-    GameLogic() {
+    public GameLogic() {
+        player = Player.X;
+        table = new CellStatus[3][3];
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 3; j++)
-                gameTable[i][j] = CellStatus.E;
+                table[i][j] = CellStatus.E;
+    }
 
-        currentPlayer = Player.X;
+    public GameLogic(GameMoveEntity move) {
+        this.table = deserializeTable(move.table);
+        this.player = move.player;
     }
 
     static private boolean isWinning(CellStatus c0, CellStatus c1, CellStatus c2) {
@@ -32,40 +35,52 @@ public class GameLogic {
         return Optional.of(cell == CellStatus.X ? Player.X : Player.O);
     }
 
+    public static String serializeTable(CellStatus[][] board) {
+        return Arrays.stream(board)
+                .map(r -> Arrays.stream(r).map(CellStatus::toString).collect(Collectors.joining(",")))
+                .collect(Collectors.joining(";"));
+    }
+
+    public static CellStatus[][] deserializeTable(String serializedBoard) {
+        return Arrays.stream(serializedBoard.split(";"))
+                .map(r -> Arrays.stream(r.split(",")).map(CellStatus::valueOf).toArray(CellStatus[]::new))
+                .toArray(CellStatus[][]::new);
+    }
+
     public void makeMove(int i, int j) throws InvalidTicTacToeInput {
         if (i < 0 || i > 2 || j < 0 || j > 2) { // <- Check for out of bounds
             throw new InvalidTicTacToeInput("Out of Bounds");
         }
-        if (gameTable[i][j] != CellStatus.E) { // <- check for already filled
+        if (table[i][j] != CellStatus.E) { // <- check for already filled
             throw new InvalidTicTacToeInput("Position already used");
         }
 
-        gameTable[i][j] = currentPlayer == Player.X ? CellStatus.X : CellStatus.O;
-        currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
+        table[i][j] = player == Player.X ? CellStatus.X : CellStatus.O;
+        player = player == Player.X ? Player.O : Player.X;
     }
 
     public Optional<Player> getTheWinner() {
-        // Rows
-        var g = this.gameTable;
+        var t = table;
 
-        if (isWinning(g[0][0], g[0][1], g[0][2])) return getWinner(g[0][0]);
-        if (isWinning(g[1][0], g[1][1], g[1][2])) return getWinner(g[1][0]);
-        if (isWinning(g[2][0], g[2][1], g[2][2])) return getWinner(g[2][0]);
+        // Rows
+        if (isWinning(t[0][0], t[0][1], t[0][2])) return getWinner(t[0][0]);
+        if (isWinning(t[1][0], t[1][1], t[1][2])) return getWinner(t[1][0]);
+        if (isWinning(t[2][0], t[2][1], t[2][2])) return getWinner(t[2][0]);
 
         // Columns
-        if (isWinning(g[0][0], g[1][0], g[2][0])) return getWinner(g[0][0]);
-        if (isWinning(g[0][1], g[1][1], g[2][1])) return getWinner(g[0][1]);
-        if (isWinning(g[0][2], g[1][2], g[2][2])) return getWinner(g[0][2]);
+        if (isWinning(t[0][0], t[1][0], t[2][0])) return getWinner(t[0][0]);
+        if (isWinning(t[0][1], t[1][1], t[2][1])) return getWinner(t[0][1]);
+        if (isWinning(t[0][2], t[1][2], t[2][2])) return getWinner(t[0][2]);
 
         // Diagonals
-        if (isWinning(g[0][0], g[1][1], g[2][2])) return getWinner(g[0][0]);
-        if (isWinning(g[0][2], g[1][1], g[2][0])) return getWinner(g[0][2]);
+        if (isWinning(t[0][0], t[1][1], t[2][2])) return getWinner(t[0][0]);
+        if (isWinning(t[0][2], t[1][1], t[2][0])) return getWinner(t[0][2]);
 
         return Optional.empty();
     }
 
     public boolean isDraw() {
-        for (var row : gameTable)
+        for (var row : table)
             for (var l : row)
                 if (l == CellStatus.E)
                     return false;
@@ -73,9 +88,11 @@ public class GameLogic {
         return true;
     }
 
-    public String gameTableSerialized(GameLogic gameLogic) {
-        return Arrays.stream(gameLogic.gameTable)
-                .map(x -> Arrays.stream(x).map(Enum::toString).collect(Collectors.joining(",")))
-                .collect(Collectors.joining(";"));
+    public boolean isMoveValid(int i, int j) {
+        return table[i][j] == CellStatus.E;
+    }
+
+    public boolean isGameOver() {
+        return getTheWinner().isPresent() || isDraw();
     }
 }
