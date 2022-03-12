@@ -16,9 +16,8 @@ type GameMove = {
     gameOver: boolean,
 }
 
-const newGame = () => axios.get('http://localhost:8080/startGame').then(res => res.data); // <-- request the start of a new game from the server
+const newGame = () => axios.get('http://localhost:8080/startGame').then(res => res.data);
 
-// send a move to the server and request the updated game state, using url params in a post request
 const makeMove = (i: number, j: number) => axios.post(`http://localhost:8080/move/${i}/${j}`).then(res => res.data);
 
 
@@ -37,13 +36,13 @@ const Game = () => {
         </Button>;
     }
 
-    const Result = ({winner}: { winner: Player | null }) => <>  {/* <-- renders the outcome of the game (winner, draw, or game not over) */}
+    const Result = ({winner}: { winner: Player | null }) => <>
         <Chip label={winner === null ? 'Draw' : winner === Player.X ? 'X wins' : 'O wins'}
               color={winner === null ? 'default' : winner === Player.X ? 'error' : 'success'}
               variant="outlined"
               style={{margin: '20px', fontSize: "30px"}}/>
         <Button
-            onClick={() => newGame().then(setMove)} // <-- request a new game from the server in click and sets the move state
+            onClick={() => newGame().then(setMove)}
             color="primary"
             variant="contained"
             style={{margin: '20px'}}>
